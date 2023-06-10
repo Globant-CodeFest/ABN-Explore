@@ -28,6 +28,7 @@ def getMergedDataframe(model):
   df = pd.merge(mergeddata, countryCodes, on='Country Code')
   # Rename Country column to COUNTRY
   df.rename(columns={'Country': 'COUNTRY'}, inplace=True)
+  
   return df
 
 
@@ -43,14 +44,19 @@ def getLongTable(df):
 
   return df_long
 
+def avgThroughStationIdAndData(df):
+  return df.groupby(['STATION ID', 'COUNTRY', 'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'YEAR', 'MONTH'])['TEMP'].mean().reset_index()
+
+def avgThroughAllCountries(df):
+  return df.groupby(['YEAR', 'MONTH'])['TEMP'].mean().reset_index()
 
 def writeCSV(df, country = None):
   if (country):
     df = df[df['COUNTRY'] == country]
-    df.to_csv(f'DATA/{country}.csv', index=False)
+    df.to_csv(f'TESTDATA/{country}.csv', index=False)
   else:
     for country in df['COUNTRY'].unique():
-      df[df['COUNTRY'] == country].to_csv(f'DATA/{country}.csv', index=False)
+      df[df['COUNTRY'] == country].to_csv(f'TESTDATA/{country}.csv', index=False)
 
 
 def writeJSON(df, country = None):
@@ -63,5 +69,7 @@ def writeJSON(df, country = None):
 
 df = getMergedDataframe('qfe')
 df_long = getLongTable(df)
+df_avg = avgThroughStationIdAndData(df_long)
 # writeCSV(df_long)
-writeJSON(df_long)
+# writeJSON(df_long)
+writeCSV(df_avg)
