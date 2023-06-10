@@ -18,38 +18,50 @@ def getMergedDataframe(model):
   mergeddata = pd.merge(data, metadata, on='ID')
 # Rename columnd ID to station ID
   mergeddata['Country Code'] = mergeddata['ID'].str[:2]
-  mergeddata.rename(columns={'ID': 'Station ID'}, inplace=True)
+  mergeddata.rename(columns={'ID': 'STATION ID'}, inplace=True)
 
   # COUNTRY CODES
   countryCodes = pd.read_csv('COUNTRYDATA/COUNTRIES.csv')
   countryCodes.head()
 
   # Merge the dataframes and drop the ID column
-  return pd.merge(mergeddata, countryCodes, on='Country Code')
+  df = pd.merge(mergeddata, countryCodes, on='Country Code')
+  # Rename Country column to COUNTRY
+  df.rename(columns={'Country': 'COUNTRY'}, inplace=True)
+  return df
 
 
 def getLongTable(df):
   # Create a long table with the year, month, and value for each country and station
-  df_long = pd.melt(df, id_vars=['Station ID', 'Country', 'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'YEAR'], value_vars=[f'VALUE{i}' for i in range(1, 13)], var_name='MONTH', value_name='TEMP')
+  df_long = pd.melt(df, id_vars=['STATION ID', 'COUNTRY', 'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'YEAR'], value_vars=[f'VALUE{i}' for i in range(1, 13)], var_name='MONTH', value_name='TEMP')
   # Divive TEMP by 100 to get the temperature in degrees Celsius
   df_long['TEMP'] = df_long['TEMP'] / 100
   # On month column, remove the string 'VALUE' and convert to integer
   df_long['MONTH'] = df_long['MONTH'].str[5:].astype(int)
   # Reorder Columns
-  df_long = df_long[['Station ID', 'Country', 'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'YEAR', 'MONTH', 'TEMP']]
+  df_long = df_long[['STATION ID', 'COUNTRY', 'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION', 'YEAR', 'MONTH', 'TEMP']]
 
   return df_long
 
 
 def writeCSV(df, country = None):
   if (country):
-    df = df[df['Country'] == country]
+    df = df[df['COUNTRY'] == country]
     df.to_csv(f'DATA/{country}.csv', index=False)
   else:
-    for country in df['Country'].unique():
-      df[df['Country'] == country].to_csv(f'DATA/{country}.csv', index=False)
+    for country in df['COUNTRY'].unique():
+      df[df['COUNTRY'] == country].to_csv(f'DATA/{country}.csv', index=False)
 
+
+def writeJSON(df, country = None):
+  if (country):
+    df = df[df['COUNTRY'] == country]
+    df.to_json(f'JSONDATA/{country}.json', orient='records')
+  else:
+    for country in df['COUNTRY'].unique():
+      df[df['COUNTRY'] == country].to_json(f'JSONDATA/{country}.json', orient='records')
 
 df = getMergedDataframe('qfe')
 df_long = getLongTable(df)
-writeCSV(df_long)
+# writeCSV(df_long)
+writeJSON(df_long)
