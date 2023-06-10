@@ -1,7 +1,8 @@
-# RAW DATA
+# IGNORE FOLDERS
+/DATA
 /COUNTRYDATA
 /EXPLOREDATA
-/DATA
+/TESTDATA
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
